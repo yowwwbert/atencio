@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sessions</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: rgba(220, 220, 220);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            padding: 30px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        h1 {
+            margin-bottom: 20px;
+            color: orangered;
+        }
+        label {
+            display: block;
+            text-align: left;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input {
+            width: 94%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #c2c2c2;
+            font-size: 14px;
+        }
+        button {
+            background-color: orangered;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+        }
+        button:hover {
+            background-color: darkorange;
+        }
+        .logout {
+            background-color: crimson;
+            margin-top: 10px;
+        }
+        .error {
+            color: crimson;
+            font-size: 14px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        #messages {
+            margin-top: 20px;
+            text-align: left;
+        }
+        #messages li {
+            background-color: #f9f9f9;
+            padding: 8px;
+            margin-bottom: 5px;
+            border-radius: 5px;
+            list-style: none;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="loginContainer">
+        <h1>LOGIN</h1>
+        <form onsubmit="event.preventDefault(); login();" autocomplete="off">
+            <label for="username">Username:</label>
+            <input type="text" id="username" required autocomplete="new-username">
+            <label for="password">Password:</label>
+            <input type="password" id="password" required autocomplete="new-password">
+            <div class="error" id="loginError"></div>
+            <button type="submit">Login</button>
+        </form>
+    </div>
+
+    <div class="container hidden" id="homeContainer">
+        <h1>Welcome, <span id="displayUsername"></span>!</h1>
+        <div class="error" id="textError"></div>
+        <p>Enter a string and submit it below:</p>
+        <form onsubmit="event.preventDefault(); submitText();">
+            <input type="text" id="inputText" required>
+            <button type="submit">Submit</button>
+        </form>
+        <ul id="messages"></ul>
+        <button onclick="logout()" class="logout">Logout</button>
+    </div>
+
+    <script>
+        const correctUsername = "Robert";
+        const correctPassword = "uerobert";
+
+        window.onload = function () {
+            const username = sessionStorage.getItem("username");
+            if (username) {
+                const savedTexts = JSON.parse(sessionStorage.getItem("submittedTexts")) || [];
+                showHomePage(username, savedTexts);
+            } else {
+                showLoginPage();
+            }
+        };
+
+        function login() {
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+            const loginError = document.getElementById("loginError");
+
+            loginError.style.display = "none";
+            loginError.textContent = "";
+
+            if (username === correctUsername && password === correctPassword) {
+                sessionStorage.setItem("username", username);
+                const savedTexts = JSON.parse(sessionStorage.getItem("submittedTexts")) || [];
+                showHomePage(username, savedTexts);
+            } else {
+                loginError.textContent = "Incorrect username or password!";
+                loginError.style.display = "block";
+            }
+        }
+
+        function showHomePage(username, savedTexts = []) {
+            document.getElementById("loginContainer").classList.add("hidden");
+            document.getElementById("homeContainer").classList.remove("hidden");
+            document.getElementById("displayUsername").textContent = username;
+            updateMessages(savedTexts);
+        }
+
+        function showLoginPage() {
+            document.getElementById("homeContainer").classList.add("hidden");
+            document.getElementById("loginContainer").classList.remove("hidden");
+            document.getElementById("username").value = "";
+            document.getElementById("password").value = "";
+        }
+
+        function submitText() {
+            const inputText = document.getElementById("inputText").value.trim();
+            const textError = document.getElementById("textError");
+            const savedTexts = JSON.parse(sessionStorage.getItem("submittedTexts")) || [];
+
+            if (inputText !== "") {
+                savedTexts.push(inputText); 
+                sessionStorage.setItem("submittedTexts", JSON.stringify(savedTexts));
+                updateMessages(savedTexts);
+                document.getElementById("inputText").value = ""; 
+                textError.style.display = "none";
+            } else {
+                textError.textContent = "Please enter a valid string!";
+                textError.style.display = "block";
+            }
+        }
+
+        function updateMessages(messages) {
+            const messagesContainer = document.getElementById("messages");
+            messagesContainer.innerHTML = "";
+            messages.forEach((message) => {
+                const li = document.createElement("li");
+                li.textContent = message;
+                messagesContainer.appendChild(li);
+            });
+        }
+
+        function logout() {
+            sessionStorage.removeItem("username");
+            const textError = document.getElementById("textError");
+            const loginError = document.getElementById("loginError");
+
+            textError.style.display = "none";
+            textError.textContent = "";
+
+            loginError.style.display = "none";
+            loginError.textContent = "";
+
+            showLoginPage();
+        }
+    </script>
+</body>
+</html>
